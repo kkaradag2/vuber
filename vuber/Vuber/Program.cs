@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommandLine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,9 +17,30 @@ namespace Vuber
         {
             VuberConfig config = new VuberConfig("inital");
 
-            Console.WriteLine(config.ConnectionString);
-            Console.ReadKey();
 
+
+            Parser.Default.ParseArguments<Configration, info, migration>(args)
+                            .WithParsed<Configration>(opts => Configration(opts))
+                            .WithParsed<info>(opts => info(opts))
+                            .WithParsed<migration>(opts => migrate(opts))
+                            .WithNotParsed(errs => Console.WriteLine(""));
+
+
+        }
+
+        private static object migrate(migration opts)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static object info(info opts)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static object Configration(Configration opts)
+        {
+            throw new NotImplementedException();
         }
     }
 }

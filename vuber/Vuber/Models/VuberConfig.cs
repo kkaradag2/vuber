@@ -46,45 +46,6 @@ namespace Vuber.Models
 
 
 
-
-    //    //public VuberConfig()
-    //    //{            
-    //    //    //if (!isConfigFileExisist())
-    //    //    //{
-    //    //    //    this.SaveConfigFile(this);
-    //    //    //}
-    //    //    //string ConfigFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
-
-    //    //    //if (!File.Exists(ConfigFile))
-    //    //    //{
-    //    //    //    this.SaveConfigFile(this);
-    //    //    //}
-            
-
-    //    //    //VuberConfig obj =  JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
-            
-    //    //    //this.ConnectionString = obj.ConnectionString;
-    //    //    //this.Directory = obj.Directory;
-    //    //    //this.ExecutedFolder = obj.ExecutedFolder;
-    //    //    //this.RollBackFolder = obj.RollBackFolder;
-    //    //}
-
-        
-
-
-    //    public bool isConfigFileExisist()
-    //    {
-    //        string ConfigFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
-
-    //        if (File.Exists(ConfigFile))
-    //        {
-    //            return true;
-    //        }
-    //        else
-    //        {
-    //            return false;
-    //        }
-    //    }
         public void SaveConfigFile(VuberConfig obj)
         {
             string ConfigFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
