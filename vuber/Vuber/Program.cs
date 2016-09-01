@@ -28,19 +28,19 @@ namespace Vuber
 
         }
 
-        private static object migrate(migration opts)
+        private static void migrate(migration opts)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("migrate is working");
         }
 
-        private static object info(info opts)
+        private static void info(info opts)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("info is working");
         }
 
         private static void Configration(Configration opts)
         {
-            Console.WriteLine("test");
+            Console.WriteLine("config is working");
         }
     }
 }
