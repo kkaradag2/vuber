@@ -38,9 +38,9 @@ namespace Vuber
             throw new NotImplementedException();
         }
 
-        private static object Configration(Configration opts)
+        private static void Configration(Configration opts)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("test");
         }
     }
 }
