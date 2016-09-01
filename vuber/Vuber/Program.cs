@@ -30,17 +30,17 @@ namespace Vuber
 
         private static void migrate(migration opts)
         {
-            Console.WriteLine("migrate is working");
+            Console.WriteLine("migrate is working..");
         }
 
         private static void info(info opts)
         {
-            Console.WriteLine("info is working");
+            Console.WriteLine("info is working..");
         }
 
         private static void Configration(Configration opts)
         {
-            Console.WriteLine("config is working");
+            Console.WriteLine("config is working..");
         }
     }
 }
