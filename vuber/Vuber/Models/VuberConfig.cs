@@ -17,9 +17,9 @@ namespace Vuber.Models
     public class VuberConfig
     {
         public string ConnectionString { get; set; }
-        public string Directory { get; set; }
-        public string ExecutedFolder { get; set; }
-        public string RollBackFolder { get; set; }
+        public string WorkingDirectory { get; set; }
+        public string ExecutedDirectory { get; set; }
+        public string RollbackDirectory { get; set; }
 
 
 
@@ -35,9 +35,9 @@ namespace Vuber.Models
             initialObject = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
 
             this.ConnectionString = initialObject.ConnectionString;
-            this.Directory = initialObject.Directory;
-            this.ExecutedFolder = initialObject.ExecutedFolder;
-            this.RollBackFolder = initialObject.RollBackFolder;
+            this.WorkingDirectory = initialObject.WorkingDirectory;
+            this.ExecutedDirectory = initialObject.ExecutedDirectory;
+            this.RollbackDirectory = initialObject.RollbackDirectory;
 
 
         }
@@ -59,13 +59,13 @@ namespace Vuber.Models
              if (obj.ConnectionString == null)
                  return false;
 
-             if (obj.Directory == null )
+             if (obj.WorkingDirectory == null )
                  return false;
 
-             if (obj.ExecutedFolder == null)
+             if (obj.ExecutedDirectory == null)
                  return false;
 
-             if (obj.RollBackFolder == null)
+             if (obj.RollbackDirectory == null)
                  return false;
 
 
@@ -85,9 +85,9 @@ namespace Vuber.Models
             obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
 
             Console.WriteLine("Connection String    {0}", obj.ConnectionString ?? "Fail");
-            Console.WriteLine("Working Directory    {0}", obj.Directory ?? "Fail");
-            Console.WriteLine("Executed Directory   {0}", obj.ExecutedFolder ?? "Fail");
-            Console.WriteLine("Rollback Directory   {0}", obj.RollBackFolder ?? "Fail");
+            Console.WriteLine("Working Directory    {0}", obj.WorkingDirectory ?? "Fail");
+            Console.WriteLine("Executed Directory   {0}", obj.ExecutedDirectory ?? "Fail");
+            Console.WriteLine("Rollback Directory   {0}", obj.RollbackDirectory ?? "Fail");
 
         }
 

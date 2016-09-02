@@ -56,13 +56,13 @@ namespace Vuber.Models
                 }
             }
 
-            if (!Directory.Exists(obj.Directory))
+            if (!Directory.Exists(obj.WorkingDirectory))
                 return false;
 
-            if (!Directory.Exists(obj.ExecutedFolder))
+            if (!Directory.Exists(obj.ExecutedDirectory))
                 return false;
 
-            if (!Directory.Exists(obj.RollBackFolder))
+            if (!Directory.Exists(obj.RollbackDirectory))
                 return false;
 
             return true;
@@ -82,20 +82,20 @@ namespace Vuber.Models
             VuberConfig obj = new VuberConfig();
             obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
 
-            if (!Directory.Exists(obj.Directory))
-                Console.WriteLine("Working Directory is {0} state of Fail", obj.Directory?? "null");
+            if (!Directory.Exists(obj.WorkingDirectory))
+                Console.WriteLine("Working Directory is {0} state of Fail", obj.WorkingDirectory?? "null");
             else
-                Console.WriteLine("Working Directory is {0} state of Pass", obj.Directory.ToString());
+                Console.WriteLine("Working Directory is {0} state of Pass", obj.WorkingDirectory.ToString());
 
-            if (!Directory.Exists(obj.ExecutedFolder))
-                Console.WriteLine("Executed Directory is {0} state of Fail", obj.ExecutedFolder ?? "null");
+            if (!Directory.Exists(obj.ExecutedDirectory))
+                Console.WriteLine("Executed Directory is {0} state of Fail", obj.ExecutedDirectory ?? "null");
             else
-                Console.WriteLine("Executed Directory is {0} state of Pass", obj.ExecutedFolder.ToString());
+                Console.WriteLine("Executed Directory is {0} state of Pass", obj.ExecutedDirectory.ToString());
 
-            if (!Directory.Exists(obj.RollBackFolder))
-                Console.WriteLine("Rollback Directory is {0} state of Fail", obj.RollBackFolder ?? "null");
+            if (!Directory.Exists(obj.RollbackDirectory))
+                Console.WriteLine("Rollback Directory is {0} state of Fail", obj.RollbackDirectory ?? "null");
             else
-                Console.WriteLine("Rollback Directory is {0} state of Pass", obj.RollBackFolder.ToString());
+                Console.WriteLine("Rollback Directory is {0} state of Pass", obj.RollbackDirectory.ToString());
 
 
             
@@ -123,6 +123,40 @@ namespace Vuber.Models
         }
 
 
+        public static string TestConnection()
+        {
+
+             string ConfigFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
+            if (!File.Exists(ConfigFile))
+            {
+                return "Fail";
+            }
+            //JSON.stringify
+              
+
+            VuberConfig obj = new VuberConfig();
+            obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
+
+            using (var db = new HistoryContext())
+            {
+               
+                try
+                {
+                    db.Database.Connection.ConnectionString = obj.ConnectionString.ToString();
+                    db.Database.Connection.Open();
+                    if (db.Database.Connection.State == ConnectionState.Open)
+                    {
+                        return "Success";
+                    }
+                    return "Fail";
+                }
+                catch (Exception ex)
+                {
+                    return string.Format("Fail {0}", ex.Message);
+                }
+            }
+        }
+
         public static bool isAnyPendigFile()
         {
             string ConfigFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
@@ -134,7 +168,7 @@ namespace Vuber.Models
             VuberConfig obj = new VuberConfig();
             obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
 
-            string rootPath = obj.Directory.ToString();
+            string rootPath = obj.WorkingDirectory.ToString();
             string[] files = Directory.GetFiles(rootPath, "*.sql", SearchOption.AllDirectories);
             if (files.Length > 0)
                 return true;
