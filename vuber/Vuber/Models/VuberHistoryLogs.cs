@@ -16,6 +16,7 @@ namespace Vuber.Models
 
         }
 
+        [Key]
         public int HistoryID { get; set; }
 
         [MaxLength(20)]
@@ -35,6 +36,9 @@ namespace Vuber.Models
 
         [MaxLength(64)]
         public string ExecutionIdentity { get; set; }
+
+        public string UserBy { get; set; }
+
 
     }
 

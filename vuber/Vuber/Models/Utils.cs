@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -179,5 +180,97 @@ namespace Vuber.Models
 
 
 
+
+        internal static void AddHistory(VuberHistoryLogs history, string p)
+        {
+            using (var ctx = new HistoryContext())
+            {
+                ctx.Database.Connection.ConnectionString = p;
+                ctx.Histories.Add(history);
+                ctx.SaveChanges();
+            }
+        }
+
+        public static List<VuberHistoryLogs> GetWorkingFiles(string gid, string p)
+        {
+            List<VuberHistoryLogs> result;
+
+            using (var ctx = new HistoryContext())
+            {
+                ctx.Database.Connection.ConnectionString = p;
+                result = ctx.Histories
+                    .Where(b => b.ExecutionIdentity == gid).ToList<VuberHistoryLogs>();
+            }
+            return result;
+        }
+
+
+        public static string ExecuteFiles(string commandstr, string identity, string connstr)
+        {
+            string returnMessage = string.Empty;
+            using (SqlConnection connection = new SqlConnection(connstr))
+            {
+                connection.Open();
+
+                SqlCommand command = connection.CreateCommand();
+                SqlTransaction transaction;
+
+                // Start a local transaction.
+                transaction = connection.BeginTransaction(identity);
+
+                // Must assign both transaction object and connection
+                // to Command object for a pending local transaction
+                command.Connection = connection;
+                command.Transaction = transaction;
+
+                try
+                {
+
+                    string[] commands = commandstr.Split(new string[] { "GO\r\n", "GO ", "GO\t" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string c in commands)
+                    {
+                        command.CommandText = c;
+                        command.ExecuteNonQuery();
+                    }
+
+                    // Attempt to commit the transaction.
+                    transaction.Commit();
+                    returnMessage = "Command(s) completed successfully.";
+                }
+                catch (Exception ex)
+                {
+                    returnMessage = string.Format("Commit Exception Type: {0} Message {1}", ex.GetType(), ex.Message);
+                    // Attempt to roll back the transaction.
+                    try
+                    {
+                        transaction.Rollback();
+                    }
+                    catch (Exception ex2)
+                    {
+                        // This catch block will handle any errors that may have occurred
+                        // on the server that would cause the rollback to fail, such as
+                        // a closed connection.
+                        returnMessage = string.Format("Rollback Exception Type: {0}  Message: {1}", ex2.GetType(), ex2.Message);
+                    }
+                }
+            }
+            return returnMessage;
+        }
+
+        public static void UpdateStates(List<VuberHistoryLogs> items, string state, string message, string connstrl)
+        {
+            using (var ctx = new HistoryContext())
+            {
+                ctx.Database.Connection.ConnectionString = connstrl;
+                foreach (VuberHistoryLogs item in items)
+                {
+                    ctx.Histories.Attach(item);
+                    item.State = state;
+                    item.ExecutionResult = message;
+                    ctx.SaveChanges();
+
+                }
+            }
+        }
     }
 }
