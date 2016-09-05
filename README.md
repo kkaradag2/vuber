@@ -28,27 +28,9 @@ After that you can save your .sql files to subfolders.
 After save your sql files in DPLY-100 folder, use info command and display
 pending files.
 
-	vuber info
+Inline-style: 
+![alt text](https://github.com/kkaradag2/vuber/images/info01.png "Display pendig files")
 
-E:\Vuber>Vuber info
- ----------------------------------------------------
- | Group     | File Name                | State     |
- ----------------------------------------------------
- | DPLY-100  | 01-CreateEmployeesTable  | pending   |
- ----------------------------------------------------
- | DPLY-100  | 02-AddSomeSampleEployees | pending   |
- ----------------------------------------------------
- | DPLY-100  | 03-AlterEployeesTable    | pending   |
- ----------------------------------------------------
-
- Count: 3
- ------------------------------------------------
- | Group     | File Name            | State     |
- ------------------------------------------------
- | DPLY-101  | 01_CreateTitlesTable | pending   |
- ------------------------------------------------
-
- Count: 1
 
  You can see two logical groups that DPLY-100 and DPLY-101. You can also see
  logical groups files as state is pendig.  
