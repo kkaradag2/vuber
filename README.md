@@ -14,7 +14,7 @@ Vuber waiting your .sql files a spacila folder that you set with config
 command. For example; c:\sql\WorkingDirectory is aspecila folder that
 you can save your .sql files to migrate. WorkingDirectory is not enough
 to working. You must to create a sub folder to migration command meanning
-create a logical group is created.
+create a logical group.
 
 	c:\sql\WorkingDirectory\DPLY-100
 	c:\sql\WorkingDirectory\DPLY-101
