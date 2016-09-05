@@ -1,23 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Vuber.Models
 {
     public class VuberHistoryLogs
     {
-
         public VuberHistoryLogs()
         {
-
         }
 
         [Key]
-        public int HistoryID { get; set; }
+        public int HistoryId { get; set; }
 
         [MaxLength(20)]
         public string LogicalGroup { get; set; }
@@ -31,15 +25,13 @@ namespace Vuber.Models
         public string FileName { get; set; }
 
         public string FileContext { get; set; }
-  
+
         public string ExecutionResult { get; set; }
 
         [MaxLength(64)]
         public string ExecutionIdentity { get; set; }
 
         public string UserBy { get; set; }
-
-
     }
 
     public class HistoryContext : DbContext
@@ -47,9 +39,8 @@ namespace Vuber.Models
         public HistoryContext()
             : base()
         {
-
         }
+
         public DbSet<VuberHistoryLogs> Histories { get; set; }
     }
-
 }
