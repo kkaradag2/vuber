@@ -28,12 +28,24 @@ After that you can save your .sql files to subfolders.
 After save your sql files in DPLY-100 folder, use info command and display
 pending files.
 
-Inline-style: 
+	vuber info
+
 ![alt text](https://github.com/kkaradag2/vuber/blob/master/images/info01.PNG "Display pendig files")
 
 
  You can see two logical groups that DPLY-100 and DPLY-101. You can also see
  logical groups files as state is pendig.  
+
+ Now we are ready to migrate our files to SQL server. To do this use migrate command.
+ migrate command is spacial command, read your logical groups "DPLY-100 nad DPLY-101"
+ and collect each group files eachother and execute on sql server.
+
+	vuver migrate
+
+![alt text](https://github.com/kkaradag2/vuber/blob/master/images/migrate01.PNG "migrate")
+
+	
+
 
 
 You can use --help to display command usage. For example;
@@ -52,9 +64,4 @@ folder named `executed`
 If SQL Server fails to migrate while executing files, all operation 
 will be rollbacked and files will be moved to `rollback` folder. 
 
-## Using
-
-You need to set 4 variables before you use Vuber:
-
-    vuber config -c Server=yourSQLServer;Database=yourDatabase;Trusted_Connection=True;
 
