@@ -1,50 +1,40 @@
 ﻿using Newtonsoft.Json;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Vuber.Models
 {
-    class Utils
+    internal class Utils
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public static string DirectoryExists(string path)
         {
             if (Directory.Exists(path))
-            {
                 return "Success";
-            }
-            else
-            {
-                return "False";
-            }
+            return "False";
         }
-
 
         public static bool TestConfigtation()
         {
-            
-
-            string ConfigFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
-            if (!File.Exists(ConfigFile))
+            var configFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
+            if (!File.Exists(configFile))
             {
                 return false;
             }
 
-            VuberConfig obj = new VuberConfig();
-            obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
-
+            var obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(configFile));
 
             using (var db = new HistoryContext())
-            {                
+            {
                 try
                 {
-                    db.Database.Connection.ConnectionString = obj.ConnectionString.ToString();
+                    db.Database.Connection.ConnectionString = obj.ConnectionString;
                     db.Database.Connection.Open();
                     if (db.Database.Connection.State != ConnectionState.Open)
                     {
@@ -52,7 +42,8 @@ namespace Vuber.Models
                     }
                 }
                 catch (Exception ex)
-                {                    
+                {
+                    Logger.Warn(ex.Message);
                     return false;
                 }
             }
@@ -67,45 +58,38 @@ namespace Vuber.Models
                 return false;
 
             return true;
-
         }
 
         public static void DisplayConfigration()
         {
-            string ConfigFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
-            if (!File.Exists(ConfigFile))
+            var configFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
+            if (!File.Exists(configFile))
             {
                 Console.WriteLine("Configration file is not found.");
             }
-            //JSON.stringify
-              
 
-            VuberConfig obj = new VuberConfig();
-            obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
+            var obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(configFile));
 
             if (!Directory.Exists(obj.WorkingDirectory))
-                Console.WriteLine("Working Directory is {0} state of Fail", obj.WorkingDirectory?? "null");
+                Console.WriteLine("Working Directory is {0} state of Fail", obj.WorkingDirectory ?? "null");
             else
-                Console.WriteLine("Working Directory is {0} state of Pass", obj.WorkingDirectory.ToString());
+                Console.WriteLine("Working Directory is {0} state of Pass", obj.WorkingDirectory);
 
             if (!Directory.Exists(obj.ExecutedDirectory))
                 Console.WriteLine("Executed Directory is {0} state of Fail", obj.ExecutedDirectory ?? "null");
             else
-                Console.WriteLine("Executed Directory is {0} state of Pass", obj.ExecutedDirectory.ToString());
+                Console.WriteLine("Executed Directory is {0} state of Pass", obj.ExecutedDirectory);
 
             if (!Directory.Exists(obj.RollbackDirectory))
                 Console.WriteLine("Rollback Directory is {0} state of Fail", obj.RollbackDirectory ?? "null");
             else
-                Console.WriteLine("Rollback Directory is {0} state of Pass", obj.RollbackDirectory.ToString());
-
-
-            
+                Console.WriteLine("Rollback Directory is {0} state of Pass", obj.RollbackDirectory);
 
             using (var db = new HistoryContext())
             {
                 try
                 {
-                    db.Database.Connection.ConnectionString = obj.ConnectionString.ToString();
+                    db.Database.Connection.ConnectionString = obj.ConnectionString;
                     db.Database.Connection.Open();
                     if (db.Database.Connection.State != ConnectionState.Open)
                     {
@@ -115,35 +99,26 @@ namespace Vuber.Models
                 }
                 catch (Exception ex)
                 {
+                    Logger.Warn(ex.Message);
                     Console.WriteLine("Database Connection Fail\n{0} {1}", ex.Message, obj.ConnectionString);
                 }
-
             }
-            
-
         }
-
 
         public static string TestConnection()
         {
-
-             string ConfigFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
-            if (!File.Exists(ConfigFile))
+            var configFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
+            if (!File.Exists(configFile))
             {
                 return "Fail";
             }
-            //JSON.stringify
-              
 
-            VuberConfig obj = new VuberConfig();
-            obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
-
+            var obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(configFile));
             using (var db = new HistoryContext())
             {
-               
                 try
                 {
-                    db.Database.Connection.ConnectionString = obj.ConnectionString.ToString();
+                    db.Database.Connection.ConnectionString = obj.ConnectionString;
                     db.Database.Connection.Open();
                     if (db.Database.Connection.State == ConnectionState.Open)
                     {
@@ -153,33 +128,32 @@ namespace Vuber.Models
                 }
                 catch (Exception ex)
                 {
+                    Logger.Warn(ex.Message);
                     return string.Format("Fail {0}", ex.Message);
                 }
             }
         }
 
-        public static bool isAnyPendigFile()
+        public static bool IsAnyPendigFile()
         {
-            string ConfigFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
-            if (!File.Exists(ConfigFile))
+            var configFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
+            if (!File.Exists(configFile))
             {
                 return false;
             }
+            var obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(configFile));
 
-            VuberConfig obj = new VuberConfig();
-            obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(ConfigFile));
+            string[] dirs = Directory.GetDirectories(obj.WorkingDirectory);
 
-            string rootPath = obj.WorkingDirectory.ToString();
-            string[] files = Directory.GetFiles(rootPath, "*.sql", SearchOption.AllDirectories);
-            if (files.Length > 0)
-                return true;
-            else
+            foreach (var folder in dirs)
+            {
+                string[] files = Directory.GetFiles(folder, "*.sql", SearchOption.AllDirectories);
+                if (files.Length > 0)
+                    return true;
                 return false;
+            }
+            return false;
         }
-
-
-
-
 
         internal static void AddHistory(VuberHistoryLogs history, string p)
         {
@@ -199,24 +173,22 @@ namespace Vuber.Models
             {
                 ctx.Database.Connection.ConnectionString = p;
                 result = ctx.Histories
-                    .Where(b => b.ExecutionIdentity == gid).ToList<VuberHistoryLogs>();
+                    .Where(b => b.ExecutionIdentity == gid).ToList();
             }
             return result;
         }
 
-
-        public static string ExecuteFiles(string commandstr, string identity, string connstr)
+        public static string ExecuteFiles(string commandstr, string identity, string connStrl)
         {
-            string returnMessage = string.Empty;
-            using (SqlConnection connection = new SqlConnection(connstr))
+            string returnMessage;
+            using (SqlConnection connection = new SqlConnection(connStrl))
             {
                 connection.Open();
 
                 SqlCommand command = connection.CreateCommand();
-                SqlTransaction transaction;
 
                 // Start a local transaction.
-                transaction = connection.BeginTransaction(identity);
+                var transaction = connection.BeginTransaction(identity);
 
                 // Must assign both transaction object and connection
                 // to Command object for a pending local transaction
@@ -226,7 +198,7 @@ namespace Vuber.Models
                 try
                 {
 
-                    string[] commands = commandstr.Split(new string[] { "GO\r\n", "GO ", "GO\t" }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] commands = commandstr.Split(new[] { "GO\r\n", "GO ", "GO\t" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (string c in commands)
                     {
                         command.CommandText = c;
@@ -262,13 +234,12 @@ namespace Vuber.Models
             using (var ctx = new HistoryContext())
             {
                 ctx.Database.Connection.ConnectionString = connstrl;
-                foreach (VuberHistoryLogs item in items)
+                foreach (var item in items)
                 {
                     ctx.Histories.Attach(item);
                     item.State = state;
                     item.ExecutionResult = message;
                     ctx.SaveChanges();
-
                 }
             }
         }
