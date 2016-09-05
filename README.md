@@ -29,7 +29,7 @@ After save your sql files in DPLY-100 folder, use info command and display
 pending files.
 
 Inline-style: 
-![alt text](https://github.com/kkaradag2/vuber/blob/images/info01.png "Display pendig files")
+![alt text](https://github.com/kkaradag2/vuber/blob/master/images/info01.PNG "Display pendig files")
 
 
  You can see two logical groups that DPLY-100 and DPLY-101. You can also see
