@@ -44,24 +44,73 @@ pending files.
 
 ![alt text](https://github.com/kkaradag2/vuber/blob/master/images/migrate01.PNG "migrate")
 
-	
+migration is complated successfully , vuber move folder and files to the other special directory 
+named Executed. Because of may you are configure second instance Vuber and migrate Executed files
+to other SQl server. As like as test and production enviorements.
+
+migration is complate with error, for example object þs already on database. Vuber rollback logical
+group on database. That's mean all files on DPLY-100 folder is rollbacked.
+
+![alt text](https://github.com/kkaradag2/vuber/blob/master/images/rollback01.PNG "Rollback logical group")
+
+And your woring directory files that rollbacked move special folder named Rollback.
 
 
+##Configration of Vuber
 
-You can use --help to display command usage. For example;
+To configure Vuber first you need to understand some of special configration keys.
 
-	vuber --help config
+*Working Directory* : Working directory is a special folder that you can save your .sql files to migrate them.
 
-This help diplay for you how you can use config command.
+*Executed Directory*: Executed directory is a special folder that after migration is complate successfuly your
+files move.
 
+*Rollback		  *: Rollback the other special folder that migration is not complates your scripts is rollbacked Database
+and your sql files moved this directory.
 
+*Connection*	   : SQL server connection string.
+					Server=myServerAddress;Database=myDataBase;Trusted_Connection=True;
 
-The sql files that you are working on are saved in to a special folder 
-and Vuber takes these files and executes your SQL Server. If execution 
-completed successfuly, Vuber will move your files in to other special 
-folder named `executed`
+To configure Vuber first time it is enoght to use congif command. To more information you can use --help config
 
-If SQL Server fails to migrate while executing files, all operation 
-will be rollbacked and files will be moved to `rollback` folder. 
+		vuber --help config
 
+![alt text](https://github.com/kkaradag2/vuber/blob/master/images/config01.PNG "Configration")
+					
+
+Some of configration sample;
+
+###Set SQL server connection string
+
+	vuber config -c Server=myServerAddress;Database=myDataBase;Trusted_Connection=True;
+
+###Set Working directory 
+
+	vuber config -d c:\sql\workingDirectory
+
+###set Executed directory
+
+	vuber config -m c:\sql\Executed
+
+###set Rollback folder
+
+	vuber config -r c:\sql\rollback
+
+###Configure Vuber with single line
+
+	vuber config -c Server=myServerAddress;Database=myDataBase;Trusted_Connection=True; -d c:\sql\WorkingDirectory
+	-m c:\sql\Executed -r c:\sql\rollback
+
+###Display Current configration
+
+	vuber config -l
+
+###Test Vuber Configration
+
+After complate Vuber configration, you can test Vuber configration with config -t command. This command is test enviroments
+and display configration status. Every thing is well you can start to use Vuber.
+
+	vuber config -t
+
+![alt text](https://github.com/kkaradag2/vuber/blob/master/images/config02.PNG "Configration")
 
