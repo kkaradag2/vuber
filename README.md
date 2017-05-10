@@ -10,11 +10,11 @@ plan is to cover MySQL and other databases (Oracle, PostgreSQL, Azure SQL).
 Vuber is a command-line application and it uses 4 simple commands
 info, migrate, config and help.
 
-Vuber waiting your .sql files a spacila folder that you set with config
-command. For example; c:\sql\WorkingDirectory is aspecila folder that
-you can save your .sql files to migrate. WorkingDirectory is not enough
-to working. You must to create a sub folder to migration command meanning
-create a logical group.
+Vuber waits your .sql files from a special folder that you set with config
+command. For example; c:\sql\WorkingDirectory is my special folder that I can create 
+subfolder and save my .sql files to ready migration command.
+
+Vuber also creates a sub directory and waits for you to put your .sql files into it.
 
 	c:\sql\WorkingDirectory\DPLY-100
 	c:\sql\WorkingDirectory\DPLY-101
