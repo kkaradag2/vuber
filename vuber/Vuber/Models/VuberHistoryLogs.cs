@@ -32,6 +32,8 @@ namespace Vuber.Models
         public string ExecutionIdentity { get; set; }
 
         public string UserBy { get; set; }
+
+        public string Owner { get; set; }
     }
 
     public class HistoryContext : DbContext

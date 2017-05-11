@@ -6,6 +6,8 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text.RegularExpressions;
 using Vuber.Models;
 
@@ -93,15 +95,21 @@ namespace Vuber
                     {
                         string[] files = Directory.GetFiles(folder, "*.sql", SearchOption.AllDirectories);
 
-                        var table = new ConsoleTable("Group", "File Name", "State");
+                        var table = new ConsoleTable("Group", "File Name", "State","Owner");
                         foreach (string file in files)
                         {
                             string filename = Path.GetFileNameWithoutExtension(file);
+
+                            FileInfo fileInfo = new FileInfo(file);
+                            FileSecurity fileSecurity = fileInfo.GetAccessControl();
+                            IdentityReference identityReference = fileSecurity.GetOwner(typeof(NTAccount));
+
+                      
                             var directoryInfo = new DirectoryInfo(file).Parent;
                             if (directoryInfo != null)
                             {
                                 string result = directoryInfo.Name;
-                                table.AddRow(result, filename, "pending");
+                                table.AddRow(result, filename, "pending", identityReference.Value);
                             }
                         }
                         table.Write();
@@ -163,6 +171,10 @@ namespace Vuber
                             {
                                 if (File.Exists(file))
                                 {
+                                    FileInfo fileInfo = new FileInfo(file);
+                                    FileSecurity fileSecurity = fileInfo.GetAccessControl();
+                                    IdentityReference identityReference = fileSecurity.GetOwner(typeof(NTAccount));
+
                                     VuberHistoryLogs history = new VuberHistoryLogs()
                                     {
                                         Execution = DateTime.Now,
@@ -172,7 +184,8 @@ namespace Vuber
                                         State = "Working",
                                         ExecutionIdentity = identity,
                                         FileContext = File.ReadAllText(file),
-                                        UserBy = System.Security.Principal.WindowsIdentity.GetCurrent().Name
+                                        UserBy = System.Security.Principal.WindowsIdentity.GetCurrent().Name,
+                                        Owner = identityReference.Value
                                     };
                                     Utils.AddHistory(history, config.ConnectionString);
                                 }
