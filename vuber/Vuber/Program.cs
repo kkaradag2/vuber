@@ -18,8 +18,7 @@ namespace Vuber
 
         private static void Main(string[] args)
         {
-            var configuration   = new VuberConfig("inital");
-            //var migration       = new Migration();
+            var configuration   = new VuberConfig("inital");            
 
             Parser.Default.ParseArguments<Configration, Info, Migration>(args)
                             .WithParsed<Configration>(opts => Configration(opts, configuration))
