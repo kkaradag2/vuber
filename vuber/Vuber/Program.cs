@@ -21,9 +21,9 @@ namespace Vuber
             var configuration   = new VuberConfig("inital");            
 
             Parser.Default.ParseArguments<Configration, Info, Migration>(args)
-                            .WithParsed<Configration>(opts => Configration(opts, configuration))
-                            .WithParsed<Info>(opts => Info(configuration))
-                            .WithParsed<Migration>(opts => Migrate(configuration, new Migration()))
+                            .WithParsed<Configration>(opts => opts.RunConfiguration())
+                            .WithParsed<Info>        (opts => Info(configuration))
+                            .WithParsed<Migration>   (opts => Migrate(configuration, new Migration()))
                             .WithNotParsed(errs => Console.WriteLine(""));
         }
 

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ConsoleTables.Core;
+using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -6,13 +7,15 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using Vuber.Configuration;
+using System.Drawing;
 
 namespace Vuber.Models
 {
     internal class Utils
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
+        private static Settings config = new Settings();
         public static string DirectoryExists(string path)
         {
             if (Directory.Exists(path))
@@ -62,46 +65,22 @@ namespace Vuber.Models
 
         public static void DisplayConfigration()
         {
-            var configFile = string.Format(@"{0}\config.json", Environment.CurrentDirectory);
-            if (!File.Exists(configFile))
+            try
             {
-                Console.WriteLine("Configration file is not found.");
+                Console.WriteLine("\nCurrent Configuration:\n", Color.DarkGreen);
+
+                var table = new ConsoleTable("Properties", "Values");
+                table.AddRow("Working Directory",  string.IsNullOrEmpty(config.WorkingDirectory)  ? "Not Defined" : config.WorkingDirectory)
+                     .AddRow("Executed Directory", string.IsNullOrEmpty(config.ExecutedDirectory) ? "Not Defined" : config.ExecutedDirectory)
+                     .AddRow("Rollback Directory", string.IsNullOrEmpty(config.RollbackDirectory) ? "Not Defined" : config.RollbackDirectory)
+                     .AddRow("Connection String",  string.IsNullOrEmpty(config.ConnectionString)  ? "Not Defined" : config.ConnectionString);
+                
+                table.Write();
             }
-
-            var obj = JsonConvert.DeserializeObject<VuberConfig>(File.ReadAllText(configFile));
-
-            if (!Directory.Exists(obj.WorkingDirectory))
-                Console.WriteLine("Working Directory is {0} state of Fail", obj.WorkingDirectory ?? "null");
-            else
-                Console.WriteLine("Working Directory is {0} state of Pass", obj.WorkingDirectory);
-
-            if (!Directory.Exists(obj.ExecutedDirectory))
-                Console.WriteLine("Executed Directory is {0} state of Fail", obj.ExecutedDirectory ?? "null");
-            else
-                Console.WriteLine("Executed Directory is {0} state of Pass", obj.ExecutedDirectory);
-
-            if (!Directory.Exists(obj.RollbackDirectory))
-                Console.WriteLine("Rollback Directory is {0} state of Fail", obj.RollbackDirectory ?? "null");
-            else
-                Console.WriteLine("Rollback Directory is {0} state of Pass", obj.RollbackDirectory);
-
-            using (var db = new HistoryContext())
+            catch (Exception)
             {
-                try
-                {
-                    db.Database.Connection.ConnectionString = obj.ConnectionString;
-                    db.Database.Connection.Open();
-                    if (db.Database.Connection.State != ConnectionState.Open)
-                    {
-                        Console.WriteLine("Database Connection Fail {0}", obj.ConnectionString);
-                    }
-                    Console.WriteLine("Connection String is Pass {0}", obj.ConnectionString);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warn(ex.Message);
-                    Console.WriteLine("Database Connection Fail\n{0} {1}", ex.Message, obj.ConnectionString);
-                }
+                Console.WriteLine("Configuration is not defined.", Color.Red);
+                Console.WriteLine("You can learn how to define the configuration with the help Config.");
             }
         }
 
@@ -132,6 +111,63 @@ namespace Vuber.Models
                     return string.Format("Fail {0}", ex.Message);
                 }
             }
+        }
+
+        public static void DisplayConfigurationTest()
+        {
+            var table = new ConsoleTable("Properties", "Values", "Status");
+
+            if (!string.IsNullOrEmpty(config.ConnectionString))
+            {
+                
+                table.AddRow("Connection String", config.ConnectionString, CheckConnectionString(config));               
+            }
+            else
+            {
+                table.AddRow("Connection String", "not defined", "Fail");
+            }
+
+            if (Directory.Exists(config.WorkingDirectory))
+            {
+                table.AddRow("Working Directory", config.WorkingDirectory ?? "null", "Success");
+            }
+            else
+            {
+                table.AddRow("Working Directory", string.IsNullOrEmpty(config.WorkingDirectory) ? "Not Defined" : "", "Fail");
+            }
+
+            if (Directory.Exists(config.ExecutedDirectory))
+            {
+                table.AddRow("Execution Directory", config.ExecutedDirectory ?? "null", "Success");
+            }
+            else
+            {
+                table.AddRow("Execution Directory", string.IsNullOrEmpty(config.ExecutedDirectory) ? "Not Defined" : "", "Fail");
+            }
+
+            if (Directory.Exists(config.RollbackDirectory))
+            {
+                table.AddRow("Rollback Directory", config.RollbackDirectory ?? "null", "Success");
+            }
+            else
+            {
+                table.AddRow("Rollback Directory", string.IsNullOrEmpty(config.RollbackDirectory) ? "Not Defined" : "", "Fail");
+            }
+
+            table.Write();
+        }
+
+        private static string CheckConnectionString(Settings config)
+        {
+           
+           try {
+                        using (new SqlConnection(config.ConnectionString)) { } return "Success";
+           }
+                catch (SqlException ex) {
+                return string.Format("{0} - {1}", "Fail", ex.Message);
+            }
+            
+            return "Fail";
         }
 
         public static bool IsAnyPendigFile()
