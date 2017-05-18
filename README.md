@@ -84,6 +84,13 @@ Some of configration sample;
 
 	vuber config -c Server=myServerAddress;Database=myDataBase;Trusted_Connection=True;
 
+for test entered connection string is true or working correct;
+
+    vuber config -t  
+
+if you see "Connection String     Success", you can go to the next step.
+
+
 ###Set Working directory 
 
 	vuber config -d c:\sql\workingDirectory

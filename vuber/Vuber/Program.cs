@@ -6,6 +6,8 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text.RegularExpressions;
 using Vuber.Models;
 
@@ -13,6 +15,23 @@ namespace Vuber
 {
     internal class Program
     {
+
+        private static void Main(string[] args)
+        {
+            var configuration   = new VuberConfig("inital");
+            //var migration       = new Migration();
+
+            Parser.Default.ParseArguments<Configration, Info, Migration>(args)
+                            .WithParsed<Configration>(opts => Configration(opts, configuration))
+                            .WithParsed<Info>(opts => Info(configuration))
+                            .WithParsed<Migration>(opts => Migrate(configuration, new Migration()))
+                            .WithNotParsed(errs => Console.WriteLine(""));
+        }
+
+    
+
+ 
+
         private static void Configration(Configration opts, VuberConfig config)
         {
             foreach (var item in opts.GetType().GetProperties())
@@ -93,15 +112,21 @@ namespace Vuber
                     {
                         string[] files = Directory.GetFiles(folder, "*.sql", SearchOption.AllDirectories);
 
-                        var table = new ConsoleTable("Group", "File Name", "State");
+                        var table = new ConsoleTable("Group", "File Name", "State","Owner");
                         foreach (string file in files)
                         {
                             string filename = Path.GetFileNameWithoutExtension(file);
+
+                            FileInfo fileInfo = new FileInfo(file);
+                            FileSecurity fileSecurity = fileInfo.GetAccessControl();
+                            IdentityReference identityReference = fileSecurity.GetOwner(typeof(NTAccount));
+
+                      
                             var directoryInfo = new DirectoryInfo(file).Parent;
                             if (directoryInfo != null)
                             {
                                 string result = directoryInfo.Name;
-                                table.AddRow(result, filename, "pending");
+                                table.AddRow(result, filename, "pending", identityReference.Value);
                             }
                         }
                         table.Write();
@@ -120,49 +145,57 @@ namespace Vuber
             }
         }
 
-        private static void Main(string[] args)
-        {
-            VuberConfig config = new VuberConfig("inital");
 
-            Parser.Default.ParseArguments<Configration, Info, Migration>(args)
-                            .WithParsed<Configration>(opts => Configration(opts, config))
-                            .WithParsed<Info>(opts => Info(config))
-                            .WithParsed<Migration>(opts => Migrate(config))
-                            .WithNotParsed(errs => Console.WriteLine(""));
-        }
-
-        private static void Migrate(VuberConfig config)
+        private static object Migrate(VuberConfig conf, Migration migration)
         {
+               
             if (Utils.TestConfigtation())
             {
                 if (Utils.IsAnyPendigFile())
                 {
-                    string[] dirs = Directory.GetDirectories(config.WorkingDirectory);
+
+                    
+                    
+                    var exculudeDirectory = migration.ExculudeDirectory;
+
+                    string[] dirs = Directory.GetDirectories(conf.WorkingDirectory);
 
                     foreach (var folder in dirs)
                     {
                         string[] files = Directory.GetFiles(folder, "*.sql", SearchOption.AllDirectories);
                         List<string> @group = new List<string>();
 
-                        foreach (var item in files)
+                        if (!String.IsNullOrEmpty(migration.MigrateDirectory))
                         {
-                            var directoryInfo = new DirectoryInfo(item).Parent;
-                            if (directoryInfo != null)
+                            Console.WriteLine(migration.MigrateDirectory);
+                        }
+                        else
+                        {
+                            foreach (var item in files)
                             {
-                                string result = directoryInfo.Name;
-                                @group.Add(result);
+                                var directoryInfo = new DirectoryInfo(item).Parent;
+                                if (directoryInfo != null && directoryInfo.Name != exculudeDirectory)
+                                {
+                                    string result = directoryInfo.Name;
+                                    @group.Add(result);
+                                }
                             }
                         }
+                        return 0;
 
                         foreach (var item in @group.Distinct().ToArray())
                         {
-                            string subrootPath = string.Format(@"{0}\{1}", config.WorkingDirectory, item);
+                            string subrootPath = string.Format(@"{0}\{1}", conf.WorkingDirectory, item);
                             string[] subfiles = Directory.GetFiles(subrootPath, "*.sql");
                             string identity = Guid.NewGuid().ToString();
                             foreach (var file in subfiles)
                             {
                                 if (File.Exists(file))
                                 {
+                                    FileInfo fileInfo = new FileInfo(file);
+                                    FileSecurity fileSecurity = fileInfo.GetAccessControl();
+                                    IdentityReference identityReference = fileSecurity.GetOwner(typeof(NTAccount));
+                                    
                                     VuberHistoryLogs history = new VuberHistoryLogs()
                                     {
                                         Execution = DateTime.Now,
@@ -172,25 +205,26 @@ namespace Vuber
                                         State = "Working",
                                         ExecutionIdentity = identity,
                                         FileContext = File.ReadAllText(file),
-                                        UserBy = System.Security.Principal.WindowsIdentity.GetCurrent().Name
+                                        UserBy = System.Security.Principal.WindowsIdentity.GetCurrent().Name,
+                                        Owner = identityReference.Value
                                     };
-                                    Utils.AddHistory(history, config.ConnectionString);
+                                    Utils.AddHistory(history, conf.ConnectionString);
                                 }
                             }
                             string strExecuteSql = string.Empty;
-                            List<VuberHistoryLogs> workingRows = Utils.GetWorkingFiles(identity, config.ConnectionString);
+                            List<VuberHistoryLogs> workingRows = Utils.GetWorkingFiles(identity, conf.ConnectionString);
                             foreach (VuberHistoryLogs fl in workingRows)
                             {
                                 strExecuteSql += fl.FileContext;
                             }
 
-                            string message = Utils.ExecuteFiles(strExecuteSql, item, config.ConnectionString);
+                            string message = Utils.ExecuteFiles(strExecuteSql, item, conf.ConnectionString);
 
                             if (message == "Command(s) completed successfully.")
                             {
                                 Console.WriteLine(message);
-                                Utils.UpdateStates(workingRows, "Success", message, config.ConnectionString);
-                                string moveDirectory = string.Format(@"{0}\{1}", config.ExecutedDirectory, item);
+                                Utils.UpdateStates(workingRows, "Success", message, conf.ConnectionString);
+                                string moveDirectory = string.Format(@"{0}\{1}", conf.ExecutedDirectory, item);
 
                                 if (Directory.Exists(moveDirectory))
                                     Directory.Delete(moveDirectory, true);
@@ -199,8 +233,8 @@ namespace Vuber
                             else
                             {
                                 Console.WriteLine(message);
-                                Utils.UpdateStates(workingRows, "Rollback", message, config.ConnectionString);
-                                string rollbackDirectory = string.Format(@"{0}\{1}", config.RollbackDirectory, identity);
+                                Utils.UpdateStates(workingRows, "Rollback", message, conf.ConnectionString);
+                                string rollbackDirectory = string.Format(@"{0}\{1}", conf.RollbackDirectory, identity);
                                 Directory.Move(subrootPath, rollbackDirectory);
                                 Console.WriteLine("file(s) moved rollback folder as {0}", rollbackDirectory);
                             }
@@ -220,7 +254,7 @@ namespace Vuber
                 }
                 else
                 {
-                    Console.WriteLine("No pending file...");
+                    Console.WriteLine("No pending file to migration.");
                 }
             }
             else
@@ -229,15 +263,16 @@ namespace Vuber
                 if (File.Exists(configFile))
                 {
                     Console.WriteLine("Connection String    {0}", Utils.TestConnection());
-                    Console.WriteLine("Working  Directory   {0}", Utils.DirectoryExists(config.WorkingDirectory));
-                    Console.WriteLine("Executed Directory   {0}", Utils.DirectoryExists(config.ExecutedDirectory));
-                    Console.WriteLine("Rollback Directory   {0}", Utils.DirectoryExists(config.RollbackDirectory));
+                    Console.WriteLine("Working  Directory   {0}", Utils.DirectoryExists(conf.WorkingDirectory));
+                    Console.WriteLine("Executed Directory   {0}", Utils.DirectoryExists(conf.ExecutedDirectory));
+                    Console.WriteLine("Rollback Directory   {0}", Utils.DirectoryExists(conf.RollbackDirectory));
                 }
                 else
                 {
                     Console.WriteLine("Sometings is wrong to configration.\nPleace use vuber --help config");
                 }
             }
+            return 0;
         }
     }
 }
